@@ -4,16 +4,20 @@
 #include <string.h>
 #include <sys/select.h>
 #include <termios.h>
+#include <threads.h>
 #include <time.h>
 #include <unistd.h>
 
 const int F_WIDTH = 65;
 const int F_HEIGHT = 25;
 struct termios orig_termios;
-void reset_terminal_mode();
-void set_conio_terminal_mode();
+void icanon_terminal_mode();
+void not_icanon_terminal_mode();
+void update_snake_position();
+void draw_elements();
 int kbhit();
 int getch();
+int current_direction = 119;
 
 struct Pos {
   int x;
@@ -27,7 +31,7 @@ struct Position {
   struct Pos prev;
 };
 
-struct Position snake;
+struct Pos snake;
 
 int main() {
 
@@ -38,42 +42,22 @@ int main() {
 
   do {
     printf("\033c");
-    set_conio_terminal_mode();
-    
-    if(kbhit()){
-       int c = getch();
-       printf("pressed -> %i", c);
+    not_icanon_terminal_mode();
+    if (kbhit()) {
+      current_direction = getch();
     }
-    
-    reset_terminal_mode();
+    icanon_terminal_mode();
+    update_snake_position();
+    usleep(100000);
+    draw_elements();
 
-    usleep(80000);
-
-    for (int h = 0; h <= F_HEIGHT; h++) {
-      for (int w = 0; w <= F_WIDTH; w++) {
-        if (w == F_WIDTH) {
-          printf("H\n");
-        } else {
-          if (h != 0 && h != F_HEIGHT && w != 0 && w != F_WIDTH) {
-            // TODO add logic for print snake
-            if (snake.y == h && snake.x == w) {
-              printf("@");
-            } else {
-              printf(" ");
-            }
-          } else {
-            printf("H");
-          }
-        }
-      }
-    }
   } while (!game_over);
 
   return 0;
 }
 
-void reset_terminal_mode() { tcsetattr(0, TCSANOW, &orig_termios); };
-void set_conio_terminal_mode() {
+void icanon_terminal_mode() { tcsetattr(0, TCSANOW, &orig_termios); };
+void not_icanon_terminal_mode() {
   struct termios new_termios;
 
   /* take two copies - one for now, one for later */
@@ -81,7 +65,7 @@ void set_conio_terminal_mode() {
   memcpy(&new_termios, &orig_termios, sizeof(new_termios));
 
   /* register cleanup handler, and set the new terminal mode */
-  atexit(reset_terminal_mode);
+  atexit(icanon_terminal_mode);
   cfmakeraw(&new_termios);
   tcsetattr(0, TCSANOW, &new_termios);
 }
@@ -102,4 +86,44 @@ int getch() {
   } else {
     return c;
   }
+}
+
+void draw_elements() {
+  for (int h = 0; h <= F_HEIGHT; h++) {
+    for (int w = 0; w <= F_WIDTH; w++) {
+      if (w == F_WIDTH) {
+        printf("H\n");
+      } else {
+        if (h != 0 && h != F_HEIGHT && w != 0 && w != F_WIDTH) {
+          // TODO add logic for print snake
+
+          if (snake.y == h && snake.x == w) {
+            printf("@");
+          } else {
+            printf(" ");
+          }
+        } else {
+          printf("H");
+        }
+      }
+    }
+  }
+
+  printf("\nDirection = %i", current_direction);
+}
+
+void update_snake_position() {
+  //TODO fix change direction
+  switch (current_direction) {
+  case 119:
+    snake.x++;
+  case 100:
+    snake.y++;
+  case 115:
+    snake.x--;
+  case 97:
+    snake.y--;
+  default:
+    return;
+  };
 }
