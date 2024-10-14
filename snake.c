@@ -1,3 +1,12 @@
+// TODO
+//  1. On change direction if next direction is opposite current return ### DONE ###
+//  2. Collision with environment
+//  3. Eating fruit, update position of fruit
+//  4. Eating fruit, update snake length + calcualate new position of each body
+//  item
+//  5. Add menu (tutorial movement + start game)
+//  6. Organize and cleaning code
+
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,46 +19,41 @@
 
 const int F_WIDTH = 65;
 const int F_HEIGHT = 25;
-struct termios orig_termios;
+int current_direction;
+int new_direction;
+int game_over = 0;
+
 void icanon_terminal_mode();
 void not_icanon_terminal_mode();
 void update_snake_position();
 void draw_elements();
 int kbhit();
 int getch();
-int current_direction = 119;
 
-struct Pos {
-  int x;
-  int y;
-};
-
+struct termios orig_termios;
 struct Position {
   int x;
   int y;
-  struct Pos next;
-  struct Pos prev;
 };
-
-struct Pos snake;
+struct Position snake;
+struct Position snake_body[0];
+struct Position fruit = {10, 10};
 
 int main() {
-
-  int game_over = 0;
 
   snake.x = 30;
   snake.y = 12;
 
   do {
     printf("\033c");
+    update_snake_position();
     not_icanon_terminal_mode();
     if (kbhit()) {
-      current_direction = getch();
+      new_direction = getch();
     }
     icanon_terminal_mode();
-    update_snake_position();
-    usleep(100000);
     draw_elements();
+    usleep(100000);
 
   } while (!game_over);
 
@@ -95,10 +99,10 @@ void draw_elements() {
         printf("H\n");
       } else {
         if (h != 0 && h != F_HEIGHT && w != 0 && w != F_WIDTH) {
-          // TODO add logic for print snake
-
           if (snake.y == h && snake.x == w) {
             printf("@");
+          } else if (fruit.y == h && fruit.x == w) {
+            printf("*");
           } else {
             printf(" ");
           }
@@ -108,21 +112,45 @@ void draw_elements() {
       }
     }
   }
-
-  printf("\nDirection = %i", current_direction);
 }
 
 void update_snake_position() {
-  //TODO fix change direction
-  switch (current_direction) {
+  switch (new_direction) {
   case 119:
-    snake.x++;
-  case 100:
-    snake.y++;
-  case 115:
-    snake.x--;
-  case 97:
+    if (current_direction == 115) {
+      snake.y++;
+      return;
+    }
     snake.y--;
+    current_direction = new_direction;
+    break;
+  case 100:
+    if (current_direction == 97) {
+      snake.x--;
+      return;
+    }
+    snake.x++;
+    current_direction = new_direction;
+    break;
+  case 115:
+    if (current_direction == 119) {
+      snake.y--;
+      return;
+    }
+    snake.y++;
+    current_direction = new_direction;
+    break;
+  case 97:
+    if (current_direction == 100) {
+      snake.x++;
+      return;
+    }
+    snake.x--;
+    current_direction = new_direction;
+    break;
+  case 113:
+    game_over = 1;
+    break;
   default:
     return;
   };
