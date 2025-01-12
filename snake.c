@@ -1,7 +1,7 @@
 // TODO
 //  1. On change direction if next direction is opposite current return ### DONE ###
-//  2. Collision with environment
-//  3. Eating fruit, update position of fruit
+//  2. Collision with environment ### DONE ###
+//  3. Eating fruit, update position of fruit ### DONE ###
 //  4. Eating fruit, update snake length + calcualate new position of each body
 //  item
 //  5. Add menu (tutorial movement + start game)
@@ -22,15 +22,8 @@ const int F_HEIGHT = 25;
 int current_direction;
 int new_direction;
 int game_over = 0;
-
-void icanon_terminal_mode();
-void not_icanon_terminal_mode();
-void update_snake_position();
-void draw_elements();
-int kbhit();
-int getch();
-
 struct termios orig_termios;
+
 struct Position {
   int x;
   int y;
@@ -38,6 +31,18 @@ struct Position {
 struct Position snake;
 struct Position snake_body[0];
 struct Position fruit = {10, 10};
+
+void icanon_terminal_mode();
+void not_icanon_terminal_mode();
+void update_snake_position();
+int detect_collision(int max_widt_pos, int max_heigth_pos, struct Position snake, struct Position *fruit);
+void calcualte_new_fruit_position(struct Position *fruit);
+void calculate_snake_node_position();
+void draw_elements();
+int kbhit();
+int getch();
+
+
 
 int main() {
 
@@ -47,6 +52,7 @@ int main() {
   do {
     printf("\033c");
     update_snake_position();
+    game_over = detect_collision(F_WIDTH, F_HEIGHT, snake, &fruit);
     not_icanon_terminal_mode();
     if (kbhit()) {
       new_direction = getch();
@@ -154,4 +160,24 @@ void update_snake_position() {
   default:
     return;
   };
+}
+
+void calculate_snake_node_position(){}
+
+int detect_collision(int max_width_pos, int max_heigth_pos, struct Position snake, struct Position *fruit){
+
+  if(snake.x == max_width_pos || snake.x == 0 || snake.y == max_heigth_pos || snake.y == 0){
+    return 1;
+  }
+  if(snake.x == fruit->x && snake.y == fruit->y){
+    calcualte_new_fruit_position(fruit);
+  }
+  return 0;
+}
+
+void calcualte_new_fruit_position(struct Position *fruit){
+  int random_width = rand() % ((F_WIDTH -1) + 1) + 1;
+  fruit->x = random_width;
+  int random_height = rand() % ((F_HEIGHT -1) + 1) + 1;
+  fruit->y = random_height;
 }
