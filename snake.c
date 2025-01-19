@@ -24,35 +24,47 @@ int new_direction;
 int game_over = 0;
 struct termios orig_termios;
 
-struct Position {
+typedef struct position {
   int x;
   int y;
-};
-struct Position snake;
-struct Position snake_body[0];
-struct Position fruit = {10, 10};
+  struct position * next;
+} Position;
+Position snake;
+Position fruit = {10, 10};
+Position* last_section;
 
 void icanon_terminal_mode();
 void not_icanon_terminal_mode();
 void update_snake_position();
-int detect_collision(int max_widt_pos, int max_heigth_pos, struct Position snake, struct Position *fruit);
-void calcualte_new_fruit_position(struct Position *fruit);
-void calculate_snake_node_position();
+void update_snake_body();
+int detect_collision(int max_widt_pos, int max_heigth_pos, Position* snake);
+int eating_fruit(Position* snake, Position* fruit);
+void calcualte_new_fruit_position(Position *fruit);
+Position* create_new_node(Position* from);
 void draw_elements();
 int kbhit();
 int getch();
 
-
+  
 
 int main() {
 
   snake.x = 30;
   snake.y = 12;
+  snake.next = NULL;
+  last_section = &snake;
 
   do {
     printf("\033c");
     update_snake_position();
-    game_over = detect_collision(F_WIDTH, F_HEIGHT, snake, &fruit);
+    game_over = detect_collision(F_WIDTH, F_HEIGHT, &snake);
+    int required_new_fruit = eating_fruit(&snake, &fruit);
+    if(required_new_fruit == 1){
+      Position* new_section = create_new_node(last_section);
+      last_section->next = new_section;
+      last_section = new_section;
+      calcualte_new_fruit_position(&fruit);
+    }
     not_icanon_terminal_mode();
     if (kbhit()) {
       new_direction = getch();
@@ -99,15 +111,22 @@ int getch() {
 }
 
 void draw_elements() {
+  Position* element = &snake;
   for (int h = 0; h <= F_HEIGHT; h++) {
     for (int w = 0; w <= F_WIDTH; w++) {
       if (w == F_WIDTH) {
         printf("H\n");
       } else {
         if (h != 0 && h != F_HEIGHT && w != 0 && w != F_WIDTH) {
-          if (snake.y == h && snake.x == w) {
-            printf("@");
-          } else if (fruit.y == h && fruit.x == w) {
+
+          // Error on draw?
+
+          if(element->x == w && element->y == h){
+              printf("@");
+              if(element->next != NULL){
+                element = element->next;
+              }
+            } else if (fruit.y == h && fruit.x == w) {
             printf("*");
           } else {
             printf(" ");
@@ -121,6 +140,15 @@ void draw_elements() {
 }
 
 void update_snake_position() {
+
+  Position* temp = &snake;
+
+  while(temp->next != NULL){
+        temp->next->x = temp->x;
+        temp->next->y = temp->y;
+        temp = temp->next;
+      }
+
   switch (new_direction) {
   case 119:
     if (current_direction == 115) {
@@ -162,22 +190,34 @@ void update_snake_position() {
   };
 }
 
-void calculate_snake_node_position(){}
+int detect_collision(int max_width_pos, int max_heigth_pos, Position* snake){
 
-int detect_collision(int max_width_pos, int max_heigth_pos, struct Position snake, struct Position *fruit){
-
-  if(snake.x == max_width_pos || snake.x == 0 || snake.y == max_heigth_pos || snake.y == 0){
+  if(snake->x == max_width_pos || snake->x == 0 || snake->y == max_heigth_pos || snake->y == 0){
     return 1;
   }
-  if(snake.x == fruit->x && snake.y == fruit->y){
-    calcualte_new_fruit_position(fruit);
+  
+  return 0;
+}
+
+int eating_fruit(Position* snake, Position* fruit){
+  if(snake->x == fruit->x && snake->y == fruit->y){
+    return 1;
   }
   return 0;
 }
 
-void calcualte_new_fruit_position(struct Position *fruit){
+void calcualte_new_fruit_position(Position *fruit){
   int random_width = rand() % ((F_WIDTH -1) + 1) + 1;
   fruit->x = random_width;
   int random_height = rand() % ((F_HEIGHT -1) + 1) + 1;
   fruit->y = random_height;
 }
+
+Position* create_new_node(Position* from){
+  Position* temp = malloc(sizeof(Position));
+  temp->x = 0;
+  temp->y = 0;
+  temp->next = NULL;
+  return temp;
+}
+
