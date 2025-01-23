@@ -1,0 +1,13 @@
+TODO
+
+1.  On change direction if next direction is opposite current return ### DONE ###
+2.  Collision with environment ### DONE ###
+3.  Eating fruit, update position of fruit ### DONE ###
+4.  Eating fruit, update snake length + calcualate new position of each body item ### DONE ###
+5.  Add menu (tutorial movement + start game)
+6.  Organize and cleaning code:
+     - Refactor Position struct with only x and y coordinate and make new structure named Snake_node;
+     - Rename variables and functions
+     - Add comments
+     - Optimize logic inside functions
+     - Learn about header file and how declare functions on these files

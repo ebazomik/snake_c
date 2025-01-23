@@ -1,13 +1,3 @@
-// TODO
-//  1. On change direction if next direction is opposite current return ### DONE
-//  ###
-//  2. Collision with environment ### DONE ###
-//  3. Eating fruit, update position of fruit ### DONE ###
-//  4. Eating fruit, update snake length + calcualate new position of each body
-//  item
-//  5. Add menu (tutorial movement + start game)
-//  6. Organize and cleaning code
-
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -39,6 +29,7 @@ void not_icanon_terminal_mode();
 void update_snake_position();
 void update_snake_body();
 int detect_collision(int max_widt_pos, int max_heigth_pos, Position *snake);
+int detect_collision_with_body(Position *snake);
 int eating_fruit(Position *snake, Position *fruit);
 void calcualte_new_fruit_position(Position *fruit);
 Position *create_new_node(Position *from);
@@ -56,7 +47,9 @@ int main() {
   do {
     printf("\033c");
     update_snake_position();
-    game_over = detect_collision(F_WIDTH, F_HEIGHT, &snake);
+    int field_collision = detect_collision(F_WIDTH, F_HEIGHT, &snake);
+    int body_collision = detect_collision_with_body(&snake);
+    game_over = field_collision || body_collision;
     int required_new_fruit = eating_fruit(&snake, &fruit);
     if (required_new_fruit == 1) {
       Position *new_section = create_new_node(last_section);
@@ -72,7 +65,7 @@ int main() {
     draw_elements();
     usleep(100000);
 
-  } while (!game_over);
+  } while (game_over != 1);
 
   return 0;
 }
@@ -147,13 +140,24 @@ void draw_elements() {
 
 void update_snake_position() {
 
-  Position *element = &snake;
+  Position *snake_node = &snake;
+  int temp_x = -1;
+  int temp_y = -1;
 
-  while (element->next != NULL) {
-        element->next->x = element->x;
-        element->next->y = element->y;
-        element = element->next;
-      }
+  while (snake_node != NULL) {
+    if (temp_x != -1 && temp_y != -1) {
+      int temp_2_x = snake_node->x;
+      int temp_2_y = snake_node->y;
+      snake_node->x = temp_x;
+      snake_node->y = temp_y;
+      temp_x = temp_2_x;
+      temp_y = temp_2_y;
+    } else {
+      temp_x = snake_node->x;
+      temp_y = snake_node->y;
+    }
+    snake_node = snake_node->next;
+  }
 
   switch (new_direction) {
   case 119:
@@ -195,6 +199,18 @@ void update_snake_position() {
     return;
   };
 }
+
+int detect_collision_with_body(Position *snake) {
+  Position *node = snake->next;
+  while (node != NULL) {
+    if(node->x == snake->x && node->y == snake->y){
+      return 1;
+    } else {
+      node = node->next;
+    }
+  }
+  return 0;
+};
 
 int detect_collision(int max_width_pos, int max_heigth_pos, Position *snake) {
   if (snake->x == max_width_pos || snake->x == 0 ||
