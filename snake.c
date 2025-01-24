@@ -199,10 +199,20 @@ void calcualte_new_fruit_position(Position *fruit, int max_width,
 }
 
 /*----------------------------------------------------------------------------------------
- * Draw function
+ * Draw functions
  *----------------------------------------------------------------------------------------*/
 
-/* Function for draw every stuff on screen */
+
+/* Function to show points on top of screen*/
+void draw_top_points(int current_points){
+  printf("\n");
+  printf("### POINTS = ");
+  printf("%d ", current_points);
+  printf("###");
+  printf("\n");
+};
+
+/* Function for draw every element on game field on screen */
 void draw_elements(int width, int height, Node *head, Position *fruit) {
   for (int h = 0; h <= height; h++) {
     for (int w = 0; w <= width; w++) {
@@ -253,6 +263,7 @@ int main() {
   const int U_SECONDS = 100000;                         /* Seconds for delay at end of main cycle */
   int current_direction;                                /* The direction selected before new direction */
   int new_direction;                                    /* The direction selected on hit wasd */
+  int current_points = 0;                               /* How many fruits were eaten*/
   int game_over = 0;                                    /* Simply int to detect if the game has to stop */
   struct termios orig_termios;                          /* struct trermios definition for teminal functions */
   Node snake = {30, 12, NULL};    /* Start Node, head of snake */
@@ -273,12 +284,14 @@ int main() {
         last_node->next = new_section;
         last_node = new_section;
         calcualte_new_fruit_position(&fruit, F_WIDTH - 1, F_HEIGHT - 1);
+        current_points ++;
       }
       not_icanon_terminal_mode(&orig_termios);
       if (kbhit()) {
         new_direction = getch();
       }
       icanon_terminal_mode(&orig_termios);
+      draw_top_points(current_points);
       draw_elements(F_WIDTH, F_HEIGHT, &snake, &fruit);
     }
     usleep(U_SECONDS); /* Delay before next cycle */
