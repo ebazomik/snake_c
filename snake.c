@@ -1,3 +1,15 @@
+/*----------------------------------------------------------------------------------------
+This is a simple implementation of the Snake game to start getting hands-on with the
+language that has always intrigued and always scared me.
+For the implementation I planned to use a single linked list
+(good opportunity to study this data structure as well).
+Happy to receive any advice or constructive critique asnd for those like me who are
+trying to understand something about this language, I hope these lines will be useful ;)
+
+ebazomik
+-----------------------------------------------------------------------------------------*/
+
+
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -73,8 +85,7 @@ int getch() {
  *----------------------------------------------------------------------------------------*/
 
 /* Update position of each node based on position of the previous node */
-int update_snake_position(int new_direction, int current_direction,
-                          Node *snake) {
+int update_snake_position(int new_direction, int current_direction, Node *snake) {
 
   /* Take snake node pointer for start point */
   Node *snake_node = snake;
@@ -100,8 +111,7 @@ int update_snake_position(int new_direction, int current_direction,
 
   /* ------ After update head position -------*/
 
-  /* Update snake head position based on current direction and new direction
-   * selected */
+  /* Update snake head position based on current direction and new direction selected */
   /* If return 1, player has hit 'q' for quit the game */
   switch (new_direction) {
   case 119:
@@ -148,9 +158,13 @@ int update_snake_position(int new_direction, int current_direction,
 
 /* Detect collision from field */
 int detect_collision(int max_width_pos, int max_heigth_pos, Node *snake) {
-  if (snake->axis.x == max_width_pos || snake->axis.x == 0 ||
-      snake->axis.y == max_heigth_pos || snake->axis.y == 0) {
-    return 1;
+  if (
+    snake->axis.x == max_width_pos ||
+    snake->axis.x == 0 ||
+    snake->axis.y == max_heigth_pos ||
+    snake->axis.y == 0
+    ) {
+      return 1;
   }
   return 0;
 }
@@ -190,8 +204,7 @@ int eating_fruit(Node *snake, Position *fruit) {
 }
 
 /* Add new position to fruit*/
-void calcualte_new_fruit_position(Position *fruit, int max_width,
-                                  int max_heigth) {
+void calcualte_new_fruit_position(Position *fruit, int max_width, int max_heigth) {
   int random_width = rand() % ((max_width) + 1) + 1;
   fruit->x = random_width;
   int random_height = rand() % ((max_heigth) + 1) + 1;
