@@ -85,7 +85,7 @@ int getch() {
  *----------------------------------------------------------------------------------------*/
 
 /* Update position of each node based on position of the previous node */
-int update_snake_position(int new_direction, int current_direction, Node *snake) {
+void update_snake_position(int *new_direction, int *current_direction, Node *snake) {
 
   /* Take snake node pointer for start point */
   Node *snake_node = snake;
@@ -113,47 +113,46 @@ int update_snake_position(int new_direction, int current_direction, Node *snake)
 
   /* Update snake head position based on current direction and new direction selected */
   /* If return 1, player has hit 'q' for quit the game */
-  switch (new_direction) {
+
+  int curr_dir = *current_direction;
+  int new_dir = *new_direction;
+  switch (new_dir) {
   case 119:
-    if (current_direction == 115) {
+    if (curr_dir == 115) {
       snake->axis.y++;
-      return 0;
+      break;
     }
     snake->axis.y--;
-    current_direction = new_direction;
+    *current_direction = *new_direction;
     break;
   case 100:
-    if (current_direction == 97) {
+    if (curr_dir == 97) {
       snake->axis.x--;
-      return 0;
+      break;
     }
     snake->axis.x++;
-    current_direction = new_direction;
+    *current_direction = *new_direction;
     break;
   case 115:
-    if (current_direction == 119) {
+    if (curr_dir == 119) {
       snake->axis.y--;
-      return 0;
+      break;
     }
     snake->axis.y++;
-    current_direction = new_direction;
+    *current_direction = *new_direction;
     break;
   case 97:
-    if (current_direction == 100) {
+    if (curr_dir == 100) {
       snake->axis.x++;
-      return 0;
+      break;
     }
     snake->axis.x--;
-    current_direction = new_direction;
+    *current_direction = *new_direction;
     break;
     /* Quit the game 'q' */
   case 113:
-    return 1;
     break;
-  default:
-    return 0;
   };
-  return 0;
 };
 
 /* Detect collision from field */
@@ -286,10 +285,10 @@ int main() {
 
   do {
     printf("\033c"); /* Clear screen */
-    int quit_game = update_snake_position(new_direction, current_direction, &snake);
+    update_snake_position(&new_direction, &current_direction, &snake);
     int field_collision = detect_collision(F_WIDTH, F_HEIGHT, &snake);
     int body_collision = detect_yourself_collision(&snake);
-    game_over = field_collision || body_collision || quit_game;
+    game_over = field_collision || body_collision;
     if (game_over == 0) {
       int required_new_fruit = eating_fruit(&snake, &fruit);
       if (required_new_fruit == 1) {
